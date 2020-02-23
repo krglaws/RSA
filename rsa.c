@@ -8,14 +8,146 @@
 #include "rsa.h"
 
 
+static int gcd(bigint* res, bigint* a, bigint* b)
+{
+  if (res == NULL || a == NULL || b == NULL)
+    return -1;
+
+  bigint* a_copy = BI_new(0);
+  BI_set_bi(a_copy, a);
+
+  bigint* b_copy = BI_new(0);
+  BI_set_bi(b_copy, b);
+
+  bigint* zero = BI_new(0);
+  while (BI_cmp(a_copy, zero) == BI_GREATERTHAN &&
+         BI_cmp(b_copy, zero) == BI_GREATERTHAN)
+  {
+    if (BI_cmp(a_copy, b_copy) == BI_GREATERTHAN)
+      BI_mod(a_copy, a_copy, b_copy);
+    else
+      BI_mod(b_copy, b_copy, a_copy);
+  }
+  if (BI_cmp(a_copy, b_copy) == BI_GREATERTHAN)
+    BI_set_bi(res, a_copy);
+  else BI_set_bi(res, b_copy);
+
+  BI_free(a_copy);
+  BI_free(b_copy);
+  BI_free(zero);
+
+  return 0;
+}
+
+
+static int lcm(bigint* res, bigint* a, bigint* b)
+{
+  if (res == NULL || a == NULL || b == NULL)
+    return -1;
+
+  bigint* prod = BI_new(0);
+  BI_mul(prod, a, b);
+
+  bigint* g = BI_new(0);
+  gcd(g, a, b);
+
+  BI_div(res, prod, g);
+
+  BI_free(prod);
+  BI_free(g);
+
+  return 0;
+}
+
+
 int rsa_init(struct public_key* pub, struct private_key* priv)
-{}
+{
+  if (pub == NULL || priv == NULL)
+    return -1;
+
+  bigint* P = BI_new(0);
+  rand_prime(P,  32);
+
+  bigint* Q = BI_new(0);
+  do
+  {
+    rand_prime(Q, 32);
+  } while (BI_cmp(P, Q) == BI_EQUAL);
+
+  bigint* N = BI_new(0);
+  BI_mul(N, P, Q);
+
+  bigint* one = BI_new(1);
+  BI_sub(P, P, one);
+  BI_sub(Q, Q, one);
+
+  bigint* L = BI_new(0);
+  lcm(L, P, Q);
+
+  int bitlen = 0;
+  unsigned char tail = L->val[L->len-1];
+  for (int i = 0; i < 8; i++)
+  {
+    if (tail & 1) bitlen = (i + 1);
+    tail >>= 1;
+  }
+  bitlen += 8 * (L->val - 1);
+
+  bigint* E = BI_new(0);
+  rand_prime(E, bitlen - 1);
+
+  bigint* a = BI_new(0);
+  BI_set_bi(a, E);
+  BI_mod(a, a, L);
+
+  bigint* D = BI_new(0);
+  bigint* I = BI_new(1);
+  bigint* temp = BI_new(0);
+  for (; BI_cmp(I, L) == BI_LESSTHAN; BI_add(I, I, one))
+  {
+    BI_mul(temp, a, I);
+    BI_mod(temp, temp, L);
+    if (BI_cmp(temp, one) == BI_EQUAL)
+    {
+      BI_set_bi(D, temp);
+      break;
+    }
+  }
+
+  BI_free(P);
+  BI_free(Q);
+  BI_free(one);
+  BI_free(a);
+  BI_free(I);
+  BI_free(temp);
+
+  pub->m = N;
+  pub->e = E;
+
+  priv->m = N;
+  priv->e = D;
+
+  return 0;
+}
+
 
 int rsa_encrypt(struct enc_data* enc, struct raw_data* raw, struct public_key* pub)
-{}
+{
+  if (enc == NULL || raw == NULL || pub == NULL)
+    return -1;
+
+  return 0;
+}
+
 
 int rsa_decrypt(struct raw_data* raw, struct enc_data* enc, struct private_key* priv)
-{}
+{
+  if (raw == NULL || enc == NULL || priv == NULL)
+    return -1;
+
+  return 0;
+}
+
 
 static bool is_prime1(bigint* bi)
 {
@@ -166,39 +298,9 @@ static int rand_prime(bigint* bi, unsigned int bits)
 
 int main()
 {
-/*  struct timeval start, stop;
-  srand(time(NULL));
-
-  double avg1 = 0;
-  double avg2 = 0;
-
-  for (int i = 0; i < 256*256; i++)
-  {
-    bigint* bi = BI_new(i);
-
-    gettimeofday(&start, NULL);
-    is_prime1(bi);
-    gettimeofday(&stop, NULL);
-
-    avg1 += (stop.tv_sec - start.tv_sec) * 1000000 + stop.tv_usec - start.tv_usec;
-
-    gettimeofday(&start, NULL);
-    is_prime2(bi);
-    gettimeofday(&stop, NULL);
-
-    avg2 += (stop.tv_sec - start.tv_sec) * 1000000 + stop.tv_usec - start.tv_usec;
-
-    BI_free(bi);
-  }
-
-  avg1 /= (256*256);
-  avg2 /= (256*256);
-
-  printf("avg1 = %f microseconds\navg2 = %f microseconds\n", avg1, avg2);
-*/
   srand(time(NULL));
   bigint* bi = BI_new(0);
-  rand_prime(bi, 64);
+  rand_prime(bi, 32);
   BI_print(bi);
   BI_free(bi);
 }
