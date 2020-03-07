@@ -47,7 +47,7 @@ static int rand_prime(mpz_t p, unsigned bits)
 
 /* Initializes a public and a private key for use
    in rsa_encrypt() and rsa_decrypt(). */
-void rsa_init(rsa_pubkey_t pub, rsa_privkey_t priv)
+int rsa_init(rsa_pubkey_t pub, rsa_privkey_t priv)
 {
   mpz_t P, Q, N, L, E, D;
 
@@ -73,18 +73,14 @@ void rsa_init(rsa_pubkey_t pub, rsa_privkey_t priv)
   // Set public exponent
   mpz_set_ui(E, 65537);
 
-  // Generate private exponent
-  assert(mpz_invert(D, E, L) != 0);
+  /* Generate private exponent. If mpz_invert() returns '0',
+     an inverse value could not be found, return error */
+  int stat = 0 != mpz_invert(D, E, L);
 
-  mpz_init(pub->e);
-  mpz_init(pub->m);
-  mpz_init(priv->e);
-  mpz_init(priv->m);
-
-  mpz_set(pub->e, E);
-  mpz_set(pub->m, N);
-  mpz_set(priv->e, D);
-  mpz_set(priv->m, N);
+  mpz_get_str(pub->e, 32, E);
+  mpz_get_str(pub->m, 32, N);
+  mpz_get_str(priv->e, 32, D);
+  mpz_get_str(priv->m, 32, N);
 
   mpz_clear(P);
   mpz_clear(Q);
@@ -92,6 +88,8 @@ void rsa_init(rsa_pubkey_t pub, rsa_privkey_t priv)
   mpz_clear(L);
   mpz_clear(E);
   mpz_clear(D);
+
+  return stat;
 }
 
 
@@ -99,31 +97,44 @@ void rsa_init(rsa_pubkey_t pub, rsa_privkey_t priv)
    into  a string. */
 void rsa_encrypt(char* buffer, char c, rsa_pubkey_t pub)
 {
-  mpz_t message;
+  mpz_t message, mod, exp;
+
   mpz_init(message);
+  mpz_init(mod);
+  mpz_init(exp);
+
   mpz_set_ui(message, c);
+  mpz_set_str(mod, pub->m, 32);
+  mpz_set_str(exp, pub->e, 32);
 
-  mpz_powm(message, message, pub->e, pub->m);
-
+  mpz_powm(message, message, exp, mod);
   mpz_get_str(buffer, 32, message);
 
   mpz_clear(message);
+  mpz_clear(mod);
+  mpz_clear(exp);
 }
 
 
 /* Decrypts a string and returns the result as a char. */
 char rsa_decrypt(char* buffer, rsa_privkey_t priv)
 {
+  mpz_t message, mod, exp;
 
-  mpz_t message;
   mpz_init(message);
+  mpz_init(mod);
+  mpz_init(exp);
+
   mpz_set_str(message, buffer, 32);
+  mpz_set_str(mod, priv->m, 32);
+  mpz_set_str(exp, priv->e, 32);
 
-  mpz_powm(message, message, priv->e, priv->m);
-
+  mpz_powm(message, message, exp, mod);
   char c = (char) mpz_get_ui(message);
 
   mpz_clear(message);
+  mpz_clear(mod);
+  mpz_clear(exp);
 
   return c;
 }

@@ -2,14 +2,12 @@
 #ifndef _RSA_H_
 #define _RSA_H_
 
-#include <gmp.h>
-
 
 // Public key type definition
 typedef struct
 {
-  mpz_t m;
-  mpz_t e;
+  char m[64];
+  char e[64];
 } __rsa_publickey_struct;
 
 typedef __rsa_publickey_struct rsa_pubkey_t[1];
@@ -18,8 +16,8 @@ typedef __rsa_publickey_struct rsa_pubkey_t[1];
 // Private key type definition
 typedef struct
 {
-  mpz_t m;
-  mpz_t e;
+  char m[64];
+  char e[64];
 } __rsa_privatekey_struct;
 
 typedef __rsa_privatekey_struct rsa_privkey_t[1];
@@ -37,7 +35,7 @@ static int rand_prime(mpz_t p, unsigned bits);
 
 /* Initializes a public and a private key for use
    in rsa_encrypt() and rsa_decrypt() */
-void rsa_init(rsa_pubkey_t pub, rsa_privkey_t priv);
+int rsa_init(rsa_pubkey_t pub, rsa_privkey_t priv);
 
 
 /* Encrypts a character and stores the encrypted value
