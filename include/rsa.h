@@ -2,6 +2,8 @@
 #ifndef _RSA_H_
 #define _RSA_H_
 
+#include <gmp.h>
+
 
 // Public key type definition
 typedef struct
