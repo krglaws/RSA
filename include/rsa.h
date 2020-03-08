@@ -23,19 +23,20 @@ typedef struct
 typedef __rsa_privatekey_struct rsa_privkey_t[1];
 
 
-/* Called by rand_prime(). Reads in
-   a byte from /dev/urandom */
-static unsigned char rand_byte();
+/* 
+  Initializes a public and a private key for use
+  in rsa_encrypt() and rsa_decrypt().
 
+  param pub - public key
+  param priv - private key
+  param keylen - the approximate length in bits of the keys
+  returns int, 0 on success, -1 on failure.
 
-/* Called by rsa_init(). Generates a random
-   prime number of a specified bit length */
-static int rand_prime(mpz_t p, unsigned bits);
-
-
-/* Initializes a public and a private key for use
-   in rsa_encrypt() and rsa_decrypt() */
-int rsa_init(rsa_pubkey_t pub, rsa_privkey_t priv);
+  NB: This procedure may fail for one of two reasons:
+      1. The file '/dev/urandom' could not be opened, or
+      2. An inverse of the public exponent does not exist.
+*/
+int rsa_init(rsa_pubkey_t pub, rsa_privkey_t priv, unsigned keylen);
 
 
 /* Encrypts a character and stores the encrypted value
