@@ -6,8 +6,9 @@
 // Public key type definition
 typedef struct
 {
-  char m[64];
-  char e[64];
+  unsigned b;
+  char *m;
+  char *e;
 } __rsa_publickey_struct;
 
 typedef __rsa_publickey_struct rsa_pubkey_t[1];
@@ -16,8 +17,9 @@ typedef __rsa_publickey_struct rsa_pubkey_t[1];
 // Private key type definition
 typedef struct
 {
-  char m[64];
-  char e[64];
+  unsigned b;
+  char *m;
+  char *e;
 } __rsa_privatekey_struct;
 
 typedef __rsa_privatekey_struct rsa_privkey_t[1];
@@ -30,13 +32,14 @@ typedef __rsa_privatekey_struct rsa_privkey_t[1];
   param pub - public key
   param priv - private key
   param keylen - the approximate length in bits of the keys
+  param base - base used to encode the keys
   returns int, 0 on success, -1 on failure.
 
   NB: This procedure may fail for one of two reasons:
       1. The file '/dev/urandom' could not be opened, or
-      2. An inverse of the public exponent does not exist (very unlikely).
+      2. An inverse of the public exponent does not exist (unlikely).
 */
-int rsa_init(rsa_pubkey_t pub, rsa_privkey_t priv, unsigned keylen);
+int rsa_init(rsa_pubkey_t pub, rsa_privkey_t priv, unsigned keylen, unsigned base);
 
 
 /* 

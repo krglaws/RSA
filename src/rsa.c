@@ -1,5 +1,6 @@
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <inttypes.h>
 #include <gmp.h>
@@ -42,10 +43,10 @@ static int rand_prime(mpz_t p, unsigned bits, FILE *randfile)
 
 /* Initializes a public and a private key for use
    in rsa_encrypt() and rsa_decrypt(). */
-int rsa_init(rsa_pubkey_t pub, rsa_privkey_t priv, unsigned keylen)
+int rsa_init(rsa_pubkey_t pub, rsa_privkey_t priv, unsigned keylen, unsigned base)
 {
   FILE *urandom;
-  mpz_t P, Q, N, L, E, D;
+  mpz_t P, Q, N, L, E, D, M;
 
   // Open '/dev/urandom' for secure random number generation.
   if (NULL == (urandom = fopen("/dev/urandom", "r")))
@@ -75,11 +76,26 @@ int rsa_init(rsa_pubkey_t pub, rsa_privkey_t priv, unsigned keylen)
      an inverse value could not be found, return error */
   int stat = 0 != mpz_invert(D, E, L);
 
+  // set key base encoding
+  pub->b = base;
+  priv->b = base;
+
+  // Allocate key space
+  int len = mpz_sizeinbase(E, base);
+  pub->e = malloc(len + 1);
+
+  len = mpz_sizeinbase(D, base);
+  priv->e = malloc(len + 1);
+
+  len = mpz_sizeinbase(N, base);
+  pub->m = malloc(len + 1);
+  priv->m = malloc(len + 1);
+
   // Convert E, D, and N to char* and store into keys.
-  mpz_get_str(pub->e, 32, E);
-  mpz_get_str(pub->m, 32, N);
-  mpz_get_str(priv->e, 32, D);
-  mpz_get_str(priv->m, 32, N);
+  mpz_get_str(pub->e, base, E);
+  mpz_get_str(pub->m, base, N);
+  mpz_get_str(priv->e, base, D);
+  mpz_get_str(priv->m, base, N);
 
   // Free up mpz_t's
   mpz_clears(P, Q, N, L, E, D, NULL);
@@ -105,12 +121,12 @@ void rsa_encrypt(char* enc, unsigned count, char* raw, rsa_pubkey_t pub)
   }
 
   // Set mod and exp to public modulus and exponent
-  mpz_set_str(mod, pub->m, 32);
-  mpz_set_str(exp, pub->e, 32);
+  mpz_set_str(mod, pub->m, pub->b);
+  mpz_set_str(exp, pub->e, pub->b);
 
   // Encrypt and store into enc buffer
   mpz_powm(msg, msg, exp, mod);
-  mpz_get_str(enc, 32, msg);
+  mpz_get_str(enc, pub->b, msg);
 
   // free up mpz_t's
   mpz_clears(msg, mod, exp, NULL);
@@ -125,11 +141,11 @@ void rsa_decrypt(char* raw, char* enc, rsa_privkey_t priv)
   mpz_inits(msg, mod, exp, rem, NULL);
 
   // Set msg to enc value
-  mpz_set_str(msg, enc, 32);
+  mpz_set_str(msg, enc, priv->b);
 
   // Set mod and exp to private modulus and exponent
-  mpz_set_str(mod, priv->m, 32);
-  mpz_set_str(exp, priv->e, 32);
+  mpz_set_str(mod, priv->m, priv->b);
+  mpz_set_str(exp, priv->e, priv->b);
 
   // Decrypt
   mpz_powm(msg, msg, exp, mod);
