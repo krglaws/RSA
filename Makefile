@@ -1,7 +1,6 @@
 
 CC := gcc
 CFLAGS := -fPIC -Iinclude -std=c99
-DEBFLAGS := -Iinclude -std=c99 -g
 
 SRC := ./src
 INC := ./include
@@ -33,10 +32,10 @@ $(DYNAMICLIB): $(RSATARG)
 
 
 .PHONY: install
-install: all
-	@cp $(INC)/* $(INCLOC)
+install:
 	@cp $(STATICLIB) $(LIBLOC)
 	@cp $(DYNAMICLIB) $(LIBLOC)
+	@cp $(INC)/* $(INCLOC)
 	@echo "Installed successfully."
 
 
