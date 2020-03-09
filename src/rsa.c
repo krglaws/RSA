@@ -43,7 +43,7 @@ static int rand_prime(mpz_t p, unsigned bits, FILE *randfile)
 
 /* Initializes a public and a private key for use
    in rsa_encrypt() and rsa_decrypt(). */
-int rsa_init(rsa_pubkey_t pub, rsa_privkey_t priv, unsigned keylen, unsigned base)
+int rsa_init(rsa_key_t pub, rsa_key_t priv, unsigned keylen, unsigned base)
 {
   FILE *urandom;
   mpz_t P, Q, N, L, E, D, M;
@@ -104,9 +104,20 @@ int rsa_init(rsa_pubkey_t pub, rsa_privkey_t priv, unsigned keylen, unsigned bas
 }
 
 
+/* frees up an initialized key */
+void rsa_clear_key(rsa_key_t key)
+{
+  free(key->e);
+  key->e = NULL;
+
+  free(key->m);
+  key->m = NULL;
+}
+
+
 /* Encrypts 'count' bytes from char* raw and stores the encrypted value
    into char* enc */
-void rsa_encrypt(char* enc, unsigned count, char* raw, rsa_pubkey_t pub)
+void rsa_encrypt(char* enc, unsigned count, char* raw, rsa_key_t pub)
 {
   // Declare and initialize mpz_t's
   mpz_t msg, mod, exp;
@@ -134,7 +145,7 @@ void rsa_encrypt(char* enc, unsigned count, char* raw, rsa_pubkey_t pub)
 
 
 /* Decrypts a string and returns the result as a char. */
-void rsa_decrypt(char* raw, char* enc, rsa_privkey_t priv)
+void rsa_decrypt(char* raw, char* enc, rsa_key_t priv)
 {
   // Declare and initialize mpz_t's
   mpz_t msg, mod, exp, rem;
@@ -159,7 +170,7 @@ void rsa_decrypt(char* raw, char* enc, rsa_privkey_t priv)
   }
   raw[i] = 0;
 
-  // Reverse raw
+  // Reverse decrypted bytes
   char* end = raw + i - 1;
   while (raw < end)
   {
@@ -173,5 +184,18 @@ void rsa_decrypt(char* raw, char* enc, rsa_privkey_t priv)
 
   // free up mpz_t's
   mpz_clears(msg, mod, exp, rem, NULL);
+}
+
+
+unsigned rsa_max_bytes(rsa_key_t key)
+{
+  mpz_t num;
+  mpz_init(num);
+  mpz_set_str(num, key->m, key->b);
+
+  int bits = mpz_sizeinbase(num, 2);
+
+  mpz_clear(num);
+  return (bits / 8) - 1;
 }
 

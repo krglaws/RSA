@@ -3,26 +3,15 @@
 #define _RSA_H_
 
 
-// Public key type definition
+// RSA key type definition
 typedef struct
 {
   unsigned b;
   char *m;
   char *e;
-} __rsa_publickey_struct;
+} __rsa_key_struct;
 
-typedef __rsa_publickey_struct rsa_pubkey_t[1];
-
-
-// Private key type definition
-typedef struct
-{
-  unsigned b;
-  char *m;
-  char *e;
-} __rsa_privatekey_struct;
-
-typedef __rsa_privatekey_struct rsa_privkey_t[1];
+typedef __rsa_key_struct rsa_key_t[1];
 
 
 /* 
@@ -31,15 +20,23 @@ typedef __rsa_privatekey_struct rsa_privkey_t[1];
 
   param pub - public key
   param priv - private key
-  param keylen - the approximate length in bits of the keys
-  param base - base used to encode the keys
+  param keylen - the approximate length in bits of the keys (best if keylen >= 32)
+  param base - base used to encode the keys (2 >= base <= 62)
   returns int, 0 on success, -1 on failure.
 
   NB: This procedure may fail for one of two reasons:
       1. The file '/dev/urandom' could not be opened, or
       2. An inverse of the public exponent does not exist (unlikely).
 */
-int rsa_init(rsa_pubkey_t pub, rsa_privkey_t priv, unsigned keylen, unsigned base);
+int rsa_init(rsa_key_t pub, rsa_key_t priv, unsigned keylen, unsigned base);
+
+
+/*
+  Frees up allocated memory in an initialized key.
+
+  param key - the key
+ */
+void rsa_clear_key(rsa_key_t key);
 
 
 /* 
@@ -55,7 +52,7 @@ int rsa_init(rsa_pubkey_t pub, rsa_privkey_t priv, unsigned keylen, unsigned bas
       (in bytes). Otherwise the result will not be able to be
       decrypted.
 */
-void rsa_encrypt(char* enc, unsigned count, char* raw, rsa_pubkey_t pub);
+void rsa_encrypt(char* enc, unsigned count, char* raw, rsa_key_t pub);
 
 
 /*
@@ -71,7 +68,15 @@ void rsa_encrypt(char* enc, unsigned count, char* raw, rsa_pubkey_t pub);
       stored contiguously, it is impossible to tell when one unit
       ends and the next begins.
 */
-void rsa_decrypt(char* raw, char* enc, rsa_privkey_t priv);
+void rsa_decrypt(char* raw, char* enc, rsa_key_t priv);
+
+
+/*
+  Returns the maximum number of bytes that an initialized public key can encrypt.
+
+  param key - the key
+ */
+unsigned rsa_max_bytes(rsa_key_t key);
 
 
 #endif
