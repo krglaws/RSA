@@ -34,18 +34,41 @@ typedef __rsa_privatekey_struct rsa_privkey_t[1];
 
   NB: This procedure may fail for one of two reasons:
       1. The file '/dev/urandom' could not be opened, or
-      2. An inverse of the public exponent does not exist.
+      2. An inverse of the public exponent does not exist (very unlikely).
 */
 int rsa_init(rsa_pubkey_t pub, rsa_privkey_t priv, unsigned keylen);
 
 
-/* Encrypts a character and stores the encrypted value
-   into  a string. */
-void rsa_encrypt(char* buffer, char c, rsa_pubkey_t pub);
+/* 
+  Encrypts a character and stores the encrypted value
+  into a char*.
+
+  param enc - buffer in which to store encrypted data
+  param count - the number of bytes in raw to encrypt
+  param raw - buffer containing data to be encrypted
+  param pub - public key
+
+  NB: Count must be less than the length of the rsa modulus
+      (in bytes). Otherwise the result will not be able to be
+      decrypted.
+*/
+void rsa_encrypt(char* enc, unsigned count, char* raw, rsa_pubkey_t pub);
 
 
-/* Decrypts a string and returns the result as a char. */
-char rsa_decrypt(char* buffer, rsa_privkey_t priv);
+/*
+  Decrypts a string and returns the result as a char.
+
+  param raw - buffer in which to store decrypted data
+  param enc - buffer containing data to be decrypted
+  param priv - private key
+
+  NB: This procedure does not accept a 'count' parameter because
+      it is assumed that the encrypted buffer contains only one
+      "unit" of data to be encrypted. If multiple "units" are
+      stored contiguously, it is impossible to tell when one unit
+      ends and the next begins.
+*/
+void rsa_decrypt(char* raw, char* enc, rsa_privkey_t priv);
 
 
 #endif

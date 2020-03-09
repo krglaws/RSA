@@ -1,5 +1,6 @@
 
 #include <stdio.h>
+#include <string.h>
 #include <inttypes.h>
 #include <gmp.h>
 
@@ -51,7 +52,7 @@ int rsa_init(rsa_pubkey_t pub, rsa_privkey_t priv, unsigned keylen)
     return -1;
 
   // Initialize mpz_t's
-  mpz_inits(P, Q, N, L, E, D);
+  mpz_inits(P, Q, N, L, E, D, NULL);
 
   // Generate two random primes
   rand_prime(P, keylen/2, urandom);
@@ -81,55 +82,80 @@ int rsa_init(rsa_pubkey_t pub, rsa_privkey_t priv, unsigned keylen)
   mpz_get_str(priv->m, 32, N);
 
   // Free up mpz_t's
-  mpz_clears(P, Q, N, L, E, D);
+  mpz_clears(P, Q, N, L, E, D, NULL);
 
   return stat;
 }
 
 
-/* Encrypts a character and stores the encrypted value
-   into  a string. */
-void rsa_encrypt(char* buffer, char c, rsa_pubkey_t pub)
+/* Encrypts 'count' bytes from char* raw and stores the encrypted value
+   into char* enc */
+void rsa_encrypt(char* enc, unsigned count, char* raw, rsa_pubkey_t pub)
 {
   // Declare and initialize mpz_t's
-  mpz_t message, mod, exp;
+  mpz_t msg, mod, exp;
+  mpz_inits(msg, mod, exp, NULL);
 
-  mpz_inits(message, mod, exp);
+  // Convert raw data into mpz_t
+  mpz_add_ui(msg, msg, raw[0]);
+  for (int i = 1; i < count; i++)
+  {
+    mpz_mul_ui(msg, msg, 256); // same as msg <<= 8
+    mpz_add_ui(msg, msg, raw[i]);
+  }
 
-  // Set message, mod, and exp to public modulus and exponent
-  mpz_set_ui(message, c);
+  // Set mod and exp to public modulus and exponent
   mpz_set_str(mod, pub->m, 32);
   mpz_set_str(exp, pub->e, 32);
 
-  // Encrypt and store string value into buffer
-  mpz_powm(message, message, exp, mod);
-  mpz_get_str(buffer, 32, message);
+  // Encrypt and store into enc buffer
+  mpz_powm(msg, msg, exp, mod);
+  mpz_get_str(enc, 32, msg);
 
   // free up mpz_t's
-  mpz_clears(message, mod, exp);
+  mpz_clears(msg, mod, exp, NULL);
 }
 
 
 /* Decrypts a string and returns the result as a char. */
-char rsa_decrypt(char* buffer, rsa_privkey_t priv)
+void rsa_decrypt(char* raw, char* enc, rsa_privkey_t priv)
 {
   // Declare and initialize mpz_t's
-  mpz_t message, mod, exp;
+  mpz_t msg, mod, exp, rem;
+  mpz_inits(msg, mod, exp, rem, NULL);
 
-  mpz_inits(message, mod, exp);
+  // Set msg to enc value
+  mpz_set_str(msg, enc, 32);
 
-  // Set message, mod, and exp to private modulus and exponent
-  mpz_set_str(message, buffer, 32);
+  // Set mod and exp to private modulus and exponent
   mpz_set_str(mod, priv->m, 32);
   mpz_set_str(exp, priv->e, 32);
 
   // Decrypt
-  mpz_powm(message, message, exp, mod);
-  char c = (char) mpz_get_ui(message);
+  mpz_powm(msg, msg, exp, mod);
+
+  // Store decrypted bytes into raw
+  int i = 0;
+  while (mpz_cmp_ui(msg, 0) != 0)
+  {
+    mpz_tdiv_qr_ui(msg, rem, msg, 256);
+    raw[i++] = mpz_get_ui(rem);
+  }
+  raw[i] = 0;
+
+  // Reverse raw
+  char* end = raw + i - 1;
+  while (raw < end)
+  {
+    *raw ^= *end;
+    *end ^= *raw;
+    *raw ^= *end;
+
+    raw++;
+    end--;
+  }
 
   // free up mpz_t's
-  mpz_clears(message, mod, exp);
-
-  return c;
+  mpz_clears(msg, mod, exp, rem, NULL);
 }
 
