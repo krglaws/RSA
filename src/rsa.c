@@ -117,7 +117,7 @@ void rsa_clear_key(rsa_key_t key)
 
 /* Encrypts 'count' bytes from char* raw and stores the encrypted value
    into char* enc */
-void rsa_encrypt(char* enc, unsigned count, char* raw, rsa_key_t pub)
+int rsa_encrypt(char* enc, unsigned count, char* raw, rsa_key_t pub)
 {
   // Declare and initialize mpz_t's
   mpz_t msg, mod, exp;
@@ -141,11 +141,14 @@ void rsa_encrypt(char* enc, unsigned count, char* raw, rsa_key_t pub)
 
   // free up mpz_t's
   mpz_clears(msg, mod, exp, NULL);
+
+  // return enc length
+  return strlen(enc);
 }
 
 
 /* Decrypts a string and returns the result as a char. */
-void rsa_decrypt(char* raw, char* enc, rsa_key_t priv)
+int rsa_decrypt(char* raw, char* enc, rsa_key_t priv)
 {
   // Declare and initialize mpz_t's
   mpz_t msg, mod, exp, rem;
@@ -184,6 +187,9 @@ void rsa_decrypt(char* raw, char* enc, rsa_key_t priv)
 
   // free up mpz_t's
   mpz_clears(msg, mod, exp, rem, NULL);
+
+  // return raw length
+  return i;
 }
 
 

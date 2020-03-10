@@ -52,7 +52,7 @@ void rsa_clear_key(rsa_key_t key);
       (in bytes). Otherwise the result will not be able to be
       decrypted.
 */
-void rsa_encrypt(char* enc, unsigned count, char* raw, rsa_key_t pub);
+int rsa_encrypt(char* enc, unsigned count, char* raw, rsa_key_t pub);
 
 
 /*
@@ -68,7 +68,7 @@ void rsa_encrypt(char* enc, unsigned count, char* raw, rsa_key_t pub);
       stored contiguously, it is impossible to tell when one unit
       ends and the next begins.
 */
-void rsa_decrypt(char* raw, char* enc, rsa_key_t priv);
+int rsa_decrypt(char* raw, char* enc, rsa_key_t priv);
 
 
 /*
