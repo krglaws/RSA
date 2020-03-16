@@ -47,6 +47,7 @@ void rsa_clear_key(rsa_key_t key);
   param count - the number of bytes in raw to encrypt
   param raw - buffer containing data to be encrypted
   param pub - public key
+  returns int, the length in bytes of the encrypted data
 
   NB: Count must be less than the length of the rsa modulus
       (in bytes). Otherwise the result will not be able to be
@@ -59,8 +60,10 @@ int rsa_encrypt(char* enc, unsigned count, char* raw, rsa_key_t pub);
   Decrypts a string and returns the result as a char.
 
   param raw - buffer in which to store decrypted data
+  param count - the number of bytes in enc to decrypt
   param enc - buffer containing data to be decrypted
   param priv - private key
+  returns int, the length in bytes of the decrypted data
 
   NB: This procedure does not accept a 'count' parameter because
       it is assumed that the encrypted buffer contains only one
@@ -68,7 +71,7 @@ int rsa_encrypt(char* enc, unsigned count, char* raw, rsa_key_t pub);
       stored contiguously, it is impossible to tell when one unit
       ends and the next begins.
 */
-int rsa_decrypt(char* raw, char* enc, rsa_key_t priv);
+int rsa_decrypt(char* raw, unsigned count, char* enc, rsa_key_t priv);
 
 
 /*

@@ -148,14 +148,22 @@ int rsa_encrypt(char* enc, unsigned count, char* raw, rsa_key_t pub)
 
 
 /* Decrypts a string and returns the result as a char. */
-int rsa_decrypt(char* raw, char* enc, rsa_key_t priv)
+int rsa_decrypt(char* raw, unsigned count, char* enc, rsa_key_t priv)
 {
+  /* mzp_set_str() will use all bytes until
+     null terminator is reached,
+     so we must separate the 'chunk' being
+     decrypted into a separate buffer. */
+  char temp[count+1];
+  memcpy(temp, enc, count);
+  temp[count] = 0; // NULL terminator
+
   // Declare and initialize mpz_t's
   mpz_t msg, mod, exp, rem;
   mpz_inits(msg, mod, exp, rem, NULL);
 
-  // Set msg to enc value
-  mpz_set_str(msg, enc, priv->b);
+  // Set msg to chunk value
+  mpz_set_str(msg, temp, priv->b);
 
   // Set mod and exp to private modulus and exponent
   mpz_set_str(mod, priv->m, priv->b);
