@@ -1,5 +1,5 @@
 # RSA
-This is a simple RSA library I wrote while working on an small terminal chat application. It is fast (thanks to the GNU MP bigint library), easy to use, and can handle practically any key length. I originally tried to write my own bigint library for this, but it was simply too slow when dealing with huge numbers, so I swallowed my pride and used GNU's library instead.
+This is a simple RSA library I wrote while working on an small terminal chat application. I know there are probably a million of these things, but this was a learning experience for me. It is fast (thanks to the GNU MP bigint library), easy to use, and can handle practically any key length. I originally tried to write my own bigint library for this, but it was simply too slow when dealing with huge numbers, so I swallowed my pride and used GNU's library instead.
 
 The documentation for this library can be found in `include/rsa.h`.
 
