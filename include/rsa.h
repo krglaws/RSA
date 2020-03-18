@@ -6,9 +6,9 @@
 // RSA key type definition
 typedef struct
 {
-  unsigned b;
-  char *m;
-  char *e;
+  unsigned b; // base
+  char *d; // divisor
+  char *e; // exponent
 } __rsa_key_struct;
 
 typedef __rsa_key_struct rsa_key_t[1];
@@ -20,7 +20,7 @@ typedef __rsa_key_struct rsa_key_t[1];
 
   param pub - public key
   param priv - private key
-  param keylen - the approximate length in bits of the keys (best if keylen >= 32)
+  param keylen - the approximate length in bits of the keys
   param base - base used to encode the keys (2 >= base <= 62)
   returns int, 0 on success, -1 on failure.
 
@@ -65,11 +65,6 @@ int rsa_encrypt(char* enc, const unsigned count, const char* raw, const rsa_key_
   param priv - private key
   returns int, the length in bytes of the decrypted data
 
-  NB: This procedure does not accept a 'count' parameter because
-      it is assumed that the encrypted buffer contains only one
-      "unit" of data to be encrypted. If multiple "units" are
-      stored contiguously, it is impossible to tell when one unit
-      ends and the next begins.
 */
 int rsa_decrypt(char* raw, const unsigned count, const char* enc, const rsa_key_t priv);
 

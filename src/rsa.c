@@ -10,7 +10,7 @@
 
 /* Called by rsa_init(). Generates a random
    prime number of a specified bit length */
-static int rand_prime(mpz_t p, unsigned bits, FILE *randfile)
+static void rand_prime(mpz_t p, unsigned bits, FILE *randfile)
 {
   // # of bits in most significant byte
   int sig_bits = bits % 8;
@@ -147,7 +147,7 @@ int rsa_encrypt(char* enc, const unsigned count, const char* raw, const rsa_key_
 }
 
 
-/* Decrypts a string and returns the result as a char. */
+/* Decrypts 'count' bytes from enc and stores the result into raw. */
 int rsa_decrypt(char* raw, const unsigned count, const char* enc, const rsa_key_t priv)
 {
   /* mzp_set_str() will use all bytes until
