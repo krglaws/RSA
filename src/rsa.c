@@ -43,7 +43,7 @@ static int rand_prime(mpz_t p, unsigned bits, FILE *randfile)
 
 /* Initializes a public and a private key for use
    in rsa_encrypt() and rsa_decrypt(). */
-int rsa_init(rsa_key_t pub, rsa_key_t priv, unsigned keylen, unsigned base)
+int rsa_init(rsa_key_t pub, rsa_key_t priv, const unsigned keylen, const unsigned base)
 {
   FILE *urandom;
   mpz_t P, Q, N, L, E, D, M;
@@ -117,7 +117,7 @@ void rsa_clear_key(rsa_key_t key)
 
 /* Encrypts 'count' bytes from char* raw and stores the encrypted value
    into char* enc */
-int rsa_encrypt(char* enc, unsigned count, char* raw, rsa_key_t pub)
+int rsa_encrypt(char* enc, const unsigned count, const char* raw, const rsa_key_t pub)
 {
   // Declare and initialize mpz_t's
   mpz_t msg, mod, exp;
@@ -148,7 +148,7 @@ int rsa_encrypt(char* enc, unsigned count, char* raw, rsa_key_t pub)
 
 
 /* Decrypts a string and returns the result as a char. */
-int rsa_decrypt(char* raw, unsigned count, char* enc, rsa_key_t priv)
+int rsa_decrypt(char* raw, const unsigned count, const char* enc, const rsa_key_t priv)
 {
   /* mzp_set_str() will use all bytes until
      null terminator is reached,
@@ -201,7 +201,7 @@ int rsa_decrypt(char* raw, unsigned count, char* enc, rsa_key_t priv)
 }
 
 
-unsigned rsa_max_bytes(rsa_key_t key)
+unsigned rsa_max_bytes(const rsa_key_t key)
 {
   mpz_t num;
   mpz_init(num);

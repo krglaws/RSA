@@ -28,7 +28,7 @@ typedef __rsa_key_struct rsa_key_t[1];
       1. The file '/dev/urandom' could not be opened, or
       2. An inverse of the public exponent does not exist (unlikely).
 */
-int rsa_init(rsa_key_t pub, rsa_key_t priv, unsigned keylen, unsigned base);
+int rsa_init(rsa_key_t pub, rsa_key_t priv, const unsigned keylen, const unsigned base);
 
 
 /*
@@ -53,7 +53,7 @@ void rsa_clear_key(rsa_key_t key);
       (in bytes). Otherwise the result will not be able to be
       decrypted.
 */
-int rsa_encrypt(char* enc, unsigned count, char* raw, rsa_key_t pub);
+int rsa_encrypt(char* enc, const unsigned count, const char* raw, const rsa_key_t pub);
 
 
 /*
@@ -71,7 +71,7 @@ int rsa_encrypt(char* enc, unsigned count, char* raw, rsa_key_t pub);
       stored contiguously, it is impossible to tell when one unit
       ends and the next begins.
 */
-int rsa_decrypt(char* raw, unsigned count, char* enc, rsa_key_t priv);
+int rsa_decrypt(char* raw, const unsigned count, const char* enc, const rsa_key_t priv);
 
 
 /*
@@ -79,7 +79,7 @@ int rsa_decrypt(char* raw, unsigned count, char* enc, rsa_key_t priv);
 
   param key - the key
  */
-unsigned rsa_max_bytes(rsa_key_t key);
+unsigned rsa_max_bytes(const rsa_key_t key);
 
 
 #endif
