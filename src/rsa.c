@@ -201,6 +201,7 @@ int rsa_decrypt(char* raw, const unsigned count, const char* enc, const rsa_key_
 }
 
 
+// returns approximate number of bytes a key can encrypt
 unsigned rsa_max_bytes(const rsa_key_t key)
 {
   mpz_t num;

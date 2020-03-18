@@ -75,7 +75,7 @@ int rsa_decrypt(char* raw, const unsigned count, const char* enc, const rsa_key_
 
 
 /*
-  Returns the maximum number of bytes that an initialized public key can encrypt.
+  Returns the (approximate) maximum number of bytes that an initialized public key can encrypt.
 
   param key - the key
  */
