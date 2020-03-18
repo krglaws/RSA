@@ -49,7 +49,7 @@ void rsa_clear_key(rsa_key_t key);
   param pub - public key
   returns int, the length in bytes of the encrypted data
 
-  NB: Count must be less than the length of the rsa modulus
+  NB: Count must be less than the length of the rsa divisor
       (in bytes). Otherwise the result will not be able to be
       decrypted.
 */

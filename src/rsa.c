@@ -61,7 +61,7 @@ int rsa_init(rsa_key_t pub, rsa_key_t priv, const unsigned keylen, const unsigne
 
   fclose(urandom);
 
-  // Multiply them to create modulus
+  // Multiply them to create divisor
   mpz_mul(N, P, Q);
 
   // Calculate lcm(P-1, Q-1)
@@ -88,14 +88,14 @@ int rsa_init(rsa_key_t pub, rsa_key_t priv, const unsigned keylen, const unsigne
   priv->e = malloc(len + 1);
 
   len = mpz_sizeinbase(N, base);
-  pub->m = malloc(len + 1);
-  priv->m = malloc(len + 1);
+  pub->d = malloc(len + 1);
+  priv->d = malloc(len + 1);
 
   // Convert E, D, and N to char* and store into keys.
   mpz_get_str(pub->e, base, E);
-  mpz_get_str(pub->m, base, N);
+  mpz_get_str(pub->d, base, N);
   mpz_get_str(priv->e, base, D);
-  mpz_get_str(priv->m, base, N);
+  mpz_get_str(priv->d, base, N);
 
   // Free up mpz_t's
   mpz_clears(P, Q, N, L, E, D, NULL);
@@ -110,8 +110,8 @@ void rsa_clear_key(rsa_key_t key)
   free(key->e);
   key->e = NULL;
 
-  free(key->m);
-  key->m = NULL;
+  free(key->d);
+  key->d = NULL;
 }
 
 
@@ -120,8 +120,8 @@ void rsa_clear_key(rsa_key_t key)
 int rsa_encrypt(char* enc, const unsigned count, const char* raw, const rsa_key_t pub)
 {
   // Declare and initialize mpz_t's
-  mpz_t msg, mod, exp;
-  mpz_inits(msg, mod, exp, NULL);
+  mpz_t msg, div, exp;
+  mpz_inits(msg, div, exp, NULL);
 
   // Convert raw data into mpz_t
   mpz_add_ui(msg, msg, raw[0]);
@@ -131,16 +131,16 @@ int rsa_encrypt(char* enc, const unsigned count, const char* raw, const rsa_key_
     mpz_add_ui(msg, msg, raw[i]);
   }
 
-  // Set mod and exp to public modulus and exponent
-  mpz_set_str(mod, pub->m, pub->b);
+  // Set div and exp to public divisor and exponent
+  mpz_set_str(div, pub->d, pub->b);
   mpz_set_str(exp, pub->e, pub->b);
 
   // Encrypt and store into enc buffer
-  mpz_powm(msg, msg, exp, mod);
+  mpz_powm(msg, msg, exp, div);
   mpz_get_str(enc, pub->b, msg);
 
   // free up mpz_t's
-  mpz_clears(msg, mod, exp, NULL);
+  mpz_clears(msg, div, exp, NULL);
 
   // return enc length
   return strlen(enc);
@@ -159,18 +159,18 @@ int rsa_decrypt(char* raw, const unsigned count, const char* enc, const rsa_key_
   temp[count] = 0; // NULL terminator
 
   // Declare and initialize mpz_t's
-  mpz_t msg, mod, exp, rem;
-  mpz_inits(msg, mod, exp, rem, NULL);
+  mpz_t msg, div, exp, rem;
+  mpz_inits(msg, div, exp, rem, NULL);
 
   // Set msg to chunk value
   mpz_set_str(msg, temp, priv->b);
 
-  // Set mod and exp to private modulus and exponent
-  mpz_set_str(mod, priv->m, priv->b);
+  // Set div and exp to private divisor and exponent
+  mpz_set_str(div, priv->d, priv->b);
   mpz_set_str(exp, priv->e, priv->b);
 
   // Decrypt
-  mpz_powm(msg, msg, exp, mod);
+  mpz_powm(msg, msg, exp, div);
 
   // Store decrypted bytes into raw
   int i = 0;
@@ -194,7 +194,7 @@ int rsa_decrypt(char* raw, const unsigned count, const char* enc, const rsa_key_
   }
 
   // free up mpz_t's
-  mpz_clears(msg, mod, exp, rem, NULL);
+  mpz_clears(msg, div, exp, rem, NULL);
 
   // return raw length
   return i;
@@ -206,7 +206,7 @@ unsigned rsa_max_bytes(const rsa_key_t key)
 {
   mpz_t num;
   mpz_init(num);
-  mpz_set_str(num, key->m, key->b);
+  mpz_set_str(num, key->d, key->b);
 
   int bits = mpz_sizeinbase(num, 2);
 
